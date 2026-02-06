@@ -1,0 +1,8 @@
+# Compiled app bundle
+Kubebar.app/Contents/MacOS/Kubebar
+
+# macOS
+.DS_Store
+
+# Claude
+.claude/
