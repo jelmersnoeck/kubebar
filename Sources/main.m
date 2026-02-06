@@ -251,10 +251,33 @@
 }
 
 - (NSString *)truncate:(NSString *)string maxLen:(NSInteger)maxLen {
-    if (string.length <= maxLen) {
-        return string;
+    NSString *display = [self stripArnPrefix:string];
+    if (display.length <= maxLen) {
+        return display;
     }
-    return [[string substringToIndex:maxLen - 1] stringByAppendingString:@"…"];
+    return [[display substringToIndex:maxLen - 1] stringByAppendingString:@"…"];
+}
+
+- (NSString *)stripArnPrefix:(NSString *)string {
+    // "arn:aws:eks:us-east-1:449647743803:cluster/gateway" -> "449647743803/gateway"
+    NSString *prefix = @"arn:aws:eks:";
+    if ([string hasPrefix:prefix]) {
+        NSString *rest = [string substringFromIndex:prefix.length];
+        // rest = "us-east-1:449647743803:cluster/gateway"
+        NSArray *parts = [rest componentsSeparatedByString:@":"];
+        if (parts.count >= 3) {
+            // parts[0] = region, parts[1] = account, parts[2] = "cluster/name"
+            NSString *account = parts[1];
+            NSString *clusterPart = parts[2];
+            // Strip "cluster/" prefix if present
+            if ([clusterPart hasPrefix:@"cluster/"]) {
+                clusterPart = [clusterPart substringFromIndex:8];
+            }
+            return [NSString stringWithFormat:@"%@/%@", account, clusterPart];
+        }
+        return rest;
+    }
+    return string;
 }
 
 @end
